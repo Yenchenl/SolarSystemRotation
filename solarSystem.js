@@ -49,6 +49,8 @@ const camera = new THREE.PerspectiveCamera(
 
 // set the orbit control
 const orbit = new OrbitControls(camera, renderer.domElement);
+// orbit.autoRotate = true;
+// orbit.autoRotateSpeed = 5.0;
 // end
 
 // create the axes helper to set the 3d model
@@ -56,8 +58,9 @@ const axesHelper = new THREE.AxesHelper(100); // x, y, z坐標軸
 scene.add(axesHelper); // add to the scene
 // end
 
-camera.position.set(-100, 150, 150);
-orbit.update();
+camera.position.set(120, 60, 120);
+// orbit.update();
+
 
 //---- add the point Light ----//
 const light = new THREE.PointLight(0xFFFFFF);
@@ -86,7 +89,7 @@ const textureLoader = new THREE.TextureLoader();
 
 //---- create the planet ----//
 // sun
-const sunGeo = new THREE.SphereGeometry(20, 64, 50);
+const sunGeo = new THREE.SphereGeometry(40, 64, 50);
 const sunMat = new THREE.MeshBasicMaterial({
     map: textureLoader.load(sunImg)
 });
@@ -97,7 +100,7 @@ sun.castShadow = true;
 // end of create sun
 
 // mercury
-const mercuryGeo = new THREE.SphereGeometry(3.2, 64, 32)
+const mercuryGeo = new THREE.SphereGeometry(6.4, 64, 32)
 const mercuryMat = new THREE.MeshStandardMaterial({
     map: textureLoader.load(mercuryImg)
 });
@@ -106,12 +109,12 @@ const mercury = new THREE.Mesh(mercuryGeo, mercuryMat);
 const mercuryObj = new THREE.Object3D();
 scene.add(mercuryObj);
 mercuryObj.add(mercury);
-mercury.position.x = -42;
+mercury.position.x = -84;
 
 
 
 // venus
-const venusGeo = new THREE.SphereGeometry(5.8, 64, 32);
+const venusGeo = new THREE.SphereGeometry(11.6, 64, 32);
 const venusMater = new THREE.MeshStandardMaterial({
     wireframe: false,
     map: textureLoader.load(venusImg)
@@ -121,13 +124,13 @@ const venus = new THREE.Mesh(venusGeo, venusMater);
 const venusObj = new THREE.Object3D();
 scene.add(venusObj);
 venusObj.add(venus);
-venus.position.x = -66;
+venus.position.x = -132;
 // venus.position.x = -30;
 // end of create venus
 
 
 // earth
-const earthGeo = new THREE.SphereGeometry(6, 64, 32);
+const earthGeo = new THREE.SphereGeometry(12, 64, 32);
 const earthMater = new THREE.MeshStandardMaterial({
     wireframe: false,
     map: textureLoader.load(earthImg)
@@ -136,11 +139,11 @@ const earth = new THREE.Mesh(earthGeo, earthMater);
 const earthObj = new THREE.Object3D();
 scene.add(earthObj);
 earthObj.add(earth);
-earth.position.x = -102;
+earth.position.x = -204;
 // end of create earth
 
 // mars
-const marsGeo = new THREE.SphereGeometry(4, 64, 32);
+const marsGeo = new THREE.SphereGeometry(8, 64, 32);
 const marsMat = new THREE.MeshStandardMaterial({
     map: textureLoader.load(marsImg)
 });
@@ -148,10 +151,10 @@ const mars = new THREE.Mesh(marsGeo, marsMat);
 const marsObj = new THREE.Object3D();
 scene.add(marsObj);
 marsObj.add(mars);
-mars.position.x = -129;
+mars.position.x = -258;
 
 // jupiter
-const jupiterGeo = new THREE.SphereGeometry(10, 64, 32);
+const jupiterGeo = new THREE.SphereGeometry(20, 64, 32);
 const jupiterMat = new THREE.MeshStandardMaterial({
     map: textureLoader.load(jupiterImg)
 });
@@ -159,10 +162,10 @@ const jupiter = new THREE.Mesh(jupiterGeo, jupiterMat);
 const jupiterObj = new THREE.Object3D();
 scene.add(jupiterObj);
 marsObj.add(jupiter);
-jupiter.position.x = -189;
+jupiter.position.x = -378;
 
 // saturn
-const saturnGeo = new THREE.SphereGeometry(8, 64, 32);
+const saturnGeo = new THREE.SphereGeometry(16, 64, 32);
 const saturnMat = new THREE.MeshStandardMaterial({
     map: textureLoader.load(saturnImg)
 });
@@ -170,17 +173,17 @@ const saturn = new THREE.Mesh(saturnGeo, saturnMat);
 const saturnObj = new THREE.Object3D();
 scene.add(saturnObj);
 saturnObj.add(saturn);
-saturn.position.x = -239;
+saturn.position.x = -478;
 
 // saturn Ring
-const saturnRingGeo = new THREE.RingGeometry(8, 20, 32);
+const saturnRingGeo = new THREE.RingGeometry(30, 20, 32);
 const saturnRingMat = new THREE.MeshBasicMaterial({
     map: textureLoader.load(saturnRingImg),
     side: THREE.DoubleSide
 });
 const saturnRing = new THREE.Mesh(saturnRingGeo, saturnRingMat);
 saturnObj.add(saturnRing);
-saturnRing.position.x = -239;
+saturnRing.position.x = -478;
 saturnRing.rotation.x = -0.5 * Math.PI;
 
 
@@ -195,8 +198,8 @@ const options = {
         Nebula: nebulaPath,
         Stars: starsPath,
         Universe: universePath},
-    speed: 0.004,
-    sunLight: 8000,
+    speed: 0.0001,
+    sunLight: 10000,
     Rockspeed: 5000
 };
 
@@ -286,8 +289,9 @@ function animate(){
     light.intensity = options.sunLight;
 
     renderer.render(scene, camera);
-
     // requestAnimationFrame(animate);
+
+    orbit.update();
 }
 
 renderer.setAnimationLoop(animate);
