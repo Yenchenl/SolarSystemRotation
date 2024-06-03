@@ -25,8 +25,8 @@ let zoomedIn = false;
 const zoomDistance = 2; // 拉近距離設為2單位
 
 function onMouseClick(event) {
-  mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
-  mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+  mouse.x = (event.clientX / window.innerWidth) * 2 - 1;// 標準化，event.clientX是鼠標座標，mouse.x表示將其的範圍限制在-1和1之間
+  mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;// 同上，只是加上負號是因為在NDC系統中越往下y值越小，但在html系統當中越往下y值越大
   
   raycaster.setFromCamera(mouse, camera);
   const intersects = raycaster.intersectObjects([cube]);

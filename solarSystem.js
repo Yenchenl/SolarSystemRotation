@@ -3,6 +3,7 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/Addons.js';
 import * as dat from 'dat.gui';
 import TWEEN, { Tween } from '@tweenjs/tween.js';
+import { GLTFLoader } from 'three/examples/jsm/Addons.js';
 
 // import the image(若無法引入到cube textureloader，請檢察照片長寬是否相同)
 import earthImg from './planetImg/earth.jpg';
@@ -14,14 +15,15 @@ import marsImg from './planetImg/mars.jpg';
 import jupiterImg from './planetImg/jupiter.jpg';
 import saturnImg from './planetImg/saturn.jpg';
 import saturnRingImg from './planetImg/saturnRring.png'
+import rock from './img/rock.jpg';
 
 // background image
 const nebulaPath = './img/nebula.jpg';
 const starsPath = './img/stars.jpg';
 const universePath = './img/starshdr.jpg'
 
-// rock
-import rock from './img/rock.jpg'
+// planet landscape glb file path
+const marsLandscapePath = './gltffile/marsurface.glb';
 
 //---- progress-bar environment----//
 // loading to texture
@@ -44,6 +46,7 @@ manager.onLoad = function(){
 //---- progress-bar environment ----//
 
 //---- planet position and radius ----//
+const planets = [];
 const mercuryRadius = 2;
 const mercuryPosition = 37;
 const venusRadius = 3;
@@ -215,6 +218,56 @@ saturnObj.add(saturnRing);
 saturnRing.position.x = -(saturnPosition);
 saturnRing.rotation.x = -0.5 * Math.PI;
 
+//---- planet landScape create ----//
+// raycaster and mouse vector
+const raycaster = new THREE.Raycaster();
+const mouse = new THREE.Vector2();
+
+// variables for animation
+let targetPosition = null;
+let isMoving = false;
+let zoomedIn = false;
+const zoomDistance = 3;
+
+// function to detect click
+function onMouseClick(event) {
+    mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+    mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+
+    raycaster.setFromCamera(mouse, camera);
+    const intersects = raycaster.intersectObjects([mars]);
+    if (intersects.length > 0) {
+        if (!zoomedIn) {
+          // Set the target position for zooming in
+          targetPosition = new THREE.Vector3(intersects[0].point.x, intersects[0].point.y, zoomDistance);
+          zoomedIn = true;
+        } else {
+          // Set the target position for zooming out
+          targetPosition = new THREE.Vector3(camera.position.x, camera.position.y, 5);
+          zoomedIn = false;
+        }
+        isMoving = true;
+      }
+}
+
+function showSurface() {
+    while(scene.children.length > 0){
+        scene.remove(scene.children[0]);
+    }
+    // Create a new surface scene
+    const loader = new GLTFLoader();
+    loader.load(marsLandscapePath, function(gltf){
+        const surface = gltf.scene;
+        scene.add(surface);
+    }, undefined, function(error){
+        console.error(error);
+    })
+    camera.position.set(0, 10, 10);
+    orbit.update();
+}
+
+//---- planet landScape create end ----//
+
 //---- create the GUI ----//
 const gui = new dat.GUI();
 // setting the choosing blocks
@@ -314,6 +367,17 @@ function animate(){
         camera.position.z = 20 * Math.cos(effectiveAngle);
     }
 
+    // If moving, interpolate camera position
+    if (isMoving && targetPosition) {
+        camera.position.lerp(targetPosition, 0.05); // Smooth transition
+        if (camera.position.distanceTo(targetPosition) < 0.1) {
+        isMoving = false; // Stop moving if close enough to the target
+        if (zoomedIn) {
+            showSurface(); // Show the surface view when zoomed in
+        }
+        }
+    }
+
     // rotation speed
     sun.rotateY(speed);
     mercuryObj.rotateY(speed * 6);
@@ -348,3 +412,5 @@ window.addEventListener('resize', function(){
     camera.updateProjectionMatrix();
     renderer.setSize(window.innerWidth, window.innerHeight);
 });
+
+window.addEventListener('click', onMouseClick);
