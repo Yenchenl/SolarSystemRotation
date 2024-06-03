@@ -23,6 +23,26 @@ const universePath = './img/starshdr.jpg'
 // rock
 import rock from './img/rock.jpg'
 
+//---- progress-bar environment----//
+// loading to texture
+const manager = new THREE.LoadingManager();
+
+// initialize the loading bar to enter main page
+const progressBar = document.getElementById('progress-bar');
+
+// calculate the loading progress value
+manager.onProgress = function ( url, itemsLoaded, itemsTotal ) {
+	progressBar.value = (itemsLoaded / itemsTotal) * 100;
+};
+// all things in progress-bar
+const progressBarContainer = document.querySelector('.progress-bar-container');
+
+// set invisible
+manager.onLoad = function(){
+    progressBarContainer.style.display = 'none';
+}
+//---- progress-bar environment ----//
+
 //---- planet position and radius ----//
 const mercuryRadius = 2;
 const mercuryPosition = 37;
@@ -73,25 +93,20 @@ camera.position.set(180, 60, 180);
 const orbit = new OrbitControls(camera, renderer.domElement);
 orbit.enableDamping = true;
 orbit.dampingFactor = 0.03;
-// orbit.autoRotate = true;
-// orbit.autoRotateSpeed = 5.0;
 // end
 
 // create the axes helper to set the 3d model
 const axesHelper = new THREE.AxesHelper(100); // x, y, z坐標軸
-// scene.add(axesHelper); // add to the scene
 // end
-
 
 //---- add the point Light ----//
 const light = new THREE.PointLight(0xFFFFFF);
 scene.add( light );
 const sLightHelper = new THREE.PointLightHelper(light);
-// scene.add(sLightHelper);
 // end
 
 // add the universe background with cube Texture
-const cubeTextureLoader = new THREE.CubeTextureLoader();
+const cubeTextureLoader = new THREE.CubeTextureLoader(manager);
 scene.background = cubeTextureLoader.load([
     sky,
     sky,
@@ -114,13 +129,11 @@ function PlanetOrbitLine(planetPosition){
     const orbitRing = new THREE.Mesh( orbitRingeometry, orbitRingmaterial ); 
     scene.add( orbitRing );
     orbitRing.rotation.x = -0.5 * Math.PI;
-    // orbitRing.rotation.y = 0.1 * Math.PI;
     return orbitRing;
 }
 
-
 // create the textureLoader //
-const textureLoader = new THREE.TextureLoader();
+const textureLoader = new THREE.TextureLoader(manager);
 
 //---- create the planet ----//
 // sun
@@ -132,7 +145,6 @@ const sunMat = new THREE.MeshBasicMaterial({
 const sun = new THREE.Mesh(sunGeo, sunMat);
 scene.add(sun);
 sun.castShadow = true;
-// end of create sun
 
 // create planet function
 function planetCreate(radius, surfaceImg, positionSet){
