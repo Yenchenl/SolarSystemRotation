@@ -6,13 +6,13 @@ import TWEEN, { Tween } from '@tweenjs/tween.js';
 import { GLTFLoader } from 'three/examples/jsm/Addons.js';
 
 // import the image(若無法引入到cube textureloader，請檢察照片長寬是否相同)
-import earthImg from './planetImg/earth.jpg';
+import earthImg from './planetImg/bluecolor.jpg';
 import sky from './img/starshdr.jpg';
 import sunImg from './planetImg/sun.jpg';
 import venusImg from './planetImg/venus.jpg';
 import mercuryImg from './planetImg/mercury.jpg';
 import marsImg from './planetImg/mars.jpg';
-import jupiterImg from './planetImg/jupiter.jpg';
+import jupiterImg from './planetImg/orangecolor.jpg';
 import saturnImg from './planetImg/saturn.jpg';
 import saturnRingImg from './planetImg/saturnRring.png'
 import rock from './img/rock.jpg';
@@ -24,6 +24,7 @@ const universePath = './img/starshdr.jpg'
 
 // planet landscape glb file path
 const marsLandscapePath = './gltffile/marsurface.glb';
+const venusLandscapePath = './gltffile/venusLandscape.glb';
 
 //---- progress-bar environment----//
 // loading to texture
@@ -68,8 +69,6 @@ var angleIncrement = 9 * Math.PI / 180;
 var startTime = Date.now();
 var currentAngle = 0;
 
-
-
 //---- declare the renderer ----//
 const renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setSize(window.innerWidth, window.innerHeight); // set the renderer size
@@ -89,7 +88,7 @@ const camera = new THREE.PerspectiveCamera(
     0.1,
     4000
 )
-camera.position.set(180, 60, 180);
+camera.position.set(100, 60, 180);
 // end
 
 // set the orbit control
@@ -150,13 +149,15 @@ scene.add(sun);
 sun.castShadow = true;
 
 // create planet function
-function planetCreate(radius, surfaceImg, positionSet){
+function planetCreate(radius, surfaceImg, positionSet, landscapeFile){
     const planetGeo = new THREE.SphereGeometry(radius, 64, 32);
     const planetMat = new THREE.MeshStandardMaterial({
         map: textureLoader.load(surfaceImg)
     });
     const planet = new THREE.Mesh(planetGeo, planetMat);
     scene.add(planet);
+    planets.push(planet);
+    planet.userData.landscapeFile = landscapeFile;
     planet.position.x = positionSet
     return planet;
 }
@@ -169,7 +170,7 @@ mercuryObj.add(mercury);
 const orbitMercury = PlanetOrbitLine(mercuryPosition);
 
 // create venus
-const venus = planetCreate(venusRadius, venusImg, -(venusPosition));
+const venus = planetCreate(venusRadius, venusImg, -(venusPosition), venusLandscapePath);
 const venusObj = new THREE.Object3D();
 scene.add(venusObj);
 venusObj.add(venus);
@@ -185,7 +186,7 @@ const orbitEarth = PlanetOrbitLine(earthPosition);
 
 
 // create mars
-const mars = planetCreate(marsRadius, marsImg, -(marsPosition));
+const mars = planetCreate(marsRadius, marsImg, -(marsPosition), marsLandscapePath);
 const marsObj = new THREE.Object3D();
 scene.add(marsObj);
 marsObj.add(mars);
@@ -227,6 +228,7 @@ const mouse = new THREE.Vector2();
 let targetPosition = null;
 let isMoving = false;
 let zoomedIn = false;
+let currentLandscape = null;
 const zoomDistance = 3;
 
 // function to detect click
@@ -235,11 +237,13 @@ function onMouseClick(event) {
     mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
 
     raycaster.setFromCamera(mouse, camera);
-    const intersects = raycaster.intersectObjects([mars]);
+    const intersects = raycaster.intersectObjects(planets);
     if (intersects.length > 0) {
+        const clickPlanet = intersects[0].object;
+        currentLandscape = clickPlanet.userData.landscapeFile;
         if (!zoomedIn) {
           // Set the target position for zooming in
-          targetPosition = new THREE.Vector3(intersects[0].point.x, intersects[0].point.y, zoomDistance);
+          targetPosition = new THREE.Vector3(clickPlanet.position.x, clickPlanet.position.y, zoomDistance);
           zoomedIn = true;
         } else {
           // Set the target position for zooming out
@@ -250,19 +254,26 @@ function onMouseClick(event) {
       }
 }
 
-function showSurface() {
+function showSurface(landscapeFile) {
     while(scene.children.length > 0){
         scene.remove(scene.children[0]);
     }
+    // ---set the direction light, it will make the plane visible
+    const directionalLight = new THREE.DirectionalLight(0xffffff, 2);
+    directionalLight.position.set(45, 45, 45);
+    scene.add(directionalLight);
+    // ---end of directional light
     // Create a new surface scene
     const loader = new GLTFLoader();
-    loader.load(marsLandscapePath, function(gltf){
+    loader.load(landscapeFile, function(gltf){
         const surface = gltf.scene;
         scene.add(surface);
     }, undefined, function(error){
         console.error(error);
     })
-    camera.position.set(0, 10, 10);
+    // camera.position.set(0, 10, 10);
+    camera.position.set(50, 50, 100);
+
     orbit.update();
 }
 
@@ -373,7 +384,7 @@ function animate(){
         if (camera.position.distanceTo(targetPosition) < 0.1) {
         isMoving = false; // Stop moving if close enough to the target
         if (zoomedIn) {
-            showSurface(); // Show the surface view when zoomed in
+            showSurface(currentLandscape); // Show the surface view when zoomed in
         }
         }
     }
