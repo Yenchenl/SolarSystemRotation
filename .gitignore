@@ -7,8 +7,6 @@ meshphongmaterial2.js
 monkeyJump.js
 sample.js
 scptofinalpro.js
-/img
-/planetImg
 createbutton.js
 createworld.js
 mappingRotation.js
@@ -19,3 +17,4 @@ orbitcontrolsAutorotate.js
 plan.js
 planwithLoading.js
 showglbfile.js
+img/Brick1.jpg
