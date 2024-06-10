@@ -24,7 +24,11 @@ const universePath = './img/starshdr.jpg'
 
 // planet landscape glb file path
 const marsLandscapePath = './gltffile/marsurface.glb';
-const venusLandscapePath = './gltffile/venusLandscape.glb';
+const venusLandscapePath = './gltffile/venusland.glb';
+const mecuryLandscapePath = './gltffile/mercury.glb';
+const earthPath = './gltffile/earthmodel.glb';
+const saturnLandPath = './gltffile/saturnLandscape.glb';
+const jupiterLandPath = './gltffile/jupiterLandscape.glb';
 
 //---- progress-bar environment----//
 // loading to texture
@@ -117,7 +121,24 @@ scene.background = cubeTextureLoader.load([
     sky,
     sky
 ]);
+// audio loader
+function audioPlayer(audioPath){
+    const listener = new THREE.AudioListener();
+    camera.add(listener);
 
+    const sound = new THREE.Audio(listener);
+
+    const audioListener = new THREE.AudioLoader();
+    audioListener.load(audioPath, function(buffer) {
+        sound.setBuffer(buffer);
+        window.addEventListener('click', function(){
+            sound.play();
+            sound.setLoop(true);
+        });
+    })
+}
+// play universe music
+audioPlayer('audio/universeSound.wav');
 
 // function to create planet orbit path
 function PlanetOrbitLine(planetPosition){
@@ -158,12 +179,13 @@ function planetCreate(radius, surfaceImg, positionSet, landscapeFile){
     scene.add(planet);
     planets.push(planet);
     planet.userData.landscapeFile = landscapeFile;
-    planet.position.x = positionSet
+    planet.position.x = positionSet;
+    planet.userData.zoomDistance = radius + 5;
     return planet;
 }
 
 // create mercury
-const mercury = planetCreate(mercuryRadius, mercuryImg, -(mercuryPosition));
+const mercury = planetCreate(mercuryRadius, mercuryImg, -(mercuryPosition), mecuryLandscapePath);
 const mercuryObj = new THREE.Object3D();
 scene.add(mercuryObj);
 mercuryObj.add(mercury);
@@ -178,7 +200,7 @@ const orbitVenus = PlanetOrbitLine(venusPosition);
 
 
 // create earth
-const earth = planetCreate(earthRadius, earthImg, -(earthPosition));
+const earth = planetCreate(earthRadius, earthImg, -(earthPosition), earthPath);
 const earthObj = new THREE.Object3D();
 scene.add(earthObj);
 earthObj.add(earth);
@@ -194,14 +216,14 @@ const orbitMars = PlanetOrbitLine(marsPosition);
 
 
 // create jupiter
-const jupiter = planetCreate(jupiterRadius, jupiterImg, -(jupiterPosition));
+const jupiter = planetCreate(jupiterRadius, jupiterImg, -(jupiterPosition), jupiterLandPath);
 const jupiterObj = new THREE.Object3D();
 scene.add(jupiterObj);
 jupiterObj.add(jupiter);
 const orbitJupiter = PlanetOrbitLine(jupiterPosition);
 
 // create saturn
-const saturn = planetCreate(saturnRadius, saturnImg, -(saturnPosition));
+const saturn = planetCreate(saturnRadius, saturnImg, -(saturnPosition), saturnLandPath);
 const saturnObj = new THREE.Object3D();
 scene.add(saturnObj);
 saturnObj.add(saturn);
@@ -229,7 +251,8 @@ let targetPosition = null;
 let isMoving = false;
 let zoomedIn = false;
 let currentLandscape = null;
-const zoomDistance = 3;
+let zoomDistance = 3;
+
 
 // function to detect click
 function onMouseClick(event) {
@@ -241,6 +264,7 @@ function onMouseClick(event) {
     if (intersects.length > 0) {
         const clickPlanet = intersects[0].object;
         currentLandscape = clickPlanet.userData.landscapeFile;
+        zoomDistance = clickPlanet.userData.zoomDistance;
         if (!zoomedIn) {
           // Set the target position for zooming in
           targetPosition = new THREE.Vector3(clickPlanet.position.x, clickPlanet.position.y, zoomDistance);
@@ -254,7 +278,7 @@ function onMouseClick(event) {
       }
 }
 
-function showSurface(landscapeFile) {
+function showSurface(landscapeFile, zoomDistance) {
     while(scene.children.length > 0){
         scene.remove(scene.children[0]);
     }
@@ -272,7 +296,7 @@ function showSurface(landscapeFile) {
         console.error(error);
     })
     // camera.position.set(0, 10, 10);
-    camera.position.set(50, 50, 100);
+    camera.position.set(zoomDistance, 10, 10);
 
     orbit.update();
 }
@@ -384,7 +408,7 @@ function animate(){
         if (camera.position.distanceTo(targetPosition) < 0.1) {
         isMoving = false; // Stop moving if close enough to the target
         if (zoomedIn) {
-            showSurface(currentLandscape); // Show the surface view when zoomed in
+            showSurface(currentLandscape, zoomDistance); // Show the surface view when zoomed in
         }
         }
     }
